@@ -13,3 +13,8 @@
 * 检查 php 语法错误 `php -l filename.php` (lint)。
 * 设置 php.ini 文件 `php -c /path/file.ini` (config)。
 * 运行 php 代码 `php -r "echo 'hello world'"` (run)。
+* 查看拓展配置 `php --ri modulename`。
+
+## 其他常用指令
+* 查看 socket 监听情况 `netstat -an`。
+* 使用 telnet 来测试连接 `telnet ip:port`。

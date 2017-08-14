@@ -18,3 +18,8 @@
     * 关闭 Worker 进程。
     * 重新加载 Worker 代码并重启。
     * 只有在 onWorkerStart 回调之后加载的文件，重启才有意义。
+
+## 注意
+* 如果 PHP 开启了 APC/OpCode，reload 重载会受影响，两种解决方法：
+    * 开启 APC/OpCode 的 stat 检测。
+    * 在 onWorkerStart 中执行 apc_clear_cache 或 opcache_reset。

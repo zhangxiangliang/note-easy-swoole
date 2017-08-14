@@ -23,3 +23,4 @@
 * 如果 PHP 开启了 APC/OpCode，reload 重载会受影响，两种解决方法：
     * 开启 APC/OpCode 的 stat 检测。
     * 在 onWorkerStart 中执行 apc_clear_cache 或 opcache_reset。
+* Linux 也可以使用 `nohup` 指令。

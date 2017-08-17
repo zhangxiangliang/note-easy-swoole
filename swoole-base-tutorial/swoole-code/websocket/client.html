@@ -1,0 +1,25 @@
+<div>
+    <textarea name="content" id="content" cols="30" rows="10"></textarea>
+    <button onclick="send()">发送</button>
+</div>
+<div class="list">
+    <ul id="ul"></ul>
+</div>
+
+<script>
+    var ws = new WebSocket('ws://192.168.1.125:9501');
+    ws.onopen = (event) => ws.send('This is websocket client.');
+    ws.onclose = (event) => console.log('Client has closed.\n', event);
+    ws.onmessage = (event) => {
+        var ul = document.getElementById('ul');
+        var li = document.createElement('li');
+        li.innerHTML = event.data;
+        ul.appendChild(li);
+    };
+    function send()
+    {
+        var contentDom = document.getElementById('content');
+        ws.send(contentDom.value);
+        contentDom.value = '';
+    }
+</script>

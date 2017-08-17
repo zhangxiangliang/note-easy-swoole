@@ -1,0 +1,56 @@
+<script>
+    var ws;
+    var lockReconnect = false;
+    var url = 'ws://127.0.0.1:9501';
+
+    function createWebSocket(url)
+    {
+        try {
+            ws = new WebSocekt(url);
+            initEventHandle();
+        } catch (e) {
+            reconnect(url);
+        }
+    }
+
+    function initEventHandle()
+    {
+        ws.onclose = () => reconnect(url);
+        ws.onerror = () => reconnect(url);
+        ws.onopen = () => heartCheck.reset().start();
+        ws.onmessage = (event) => heartCheck.reset().start();
+    }
+
+    function reconnect(url)
+    {
+        if(lockReconnect) return false;
+        lockReconnect = !lockReconnect;
+        setTimeout(() => {
+            createWebSocket(url);
+            lockReconnect = !lockReconnect;
+        }, 2000);
+    }
+
+    var heartCheck = {
+        timeout: 60000,
+        timeoutObj: null,
+        serverTimeoutObj: null,
+        reset() {
+            clearTimeout(this.timeoutObj);
+            clearTimeout(this.serverTimeoutObj);
+            return this;
+        },
+        start() {
+            var self = this;
+            self.timeoutObj = setTimeout(() => {
+                ws.send("");
+                self.serverTimeoutObj = setTimeout(
+                    () => ws.close(),
+                    self.timeout
+                );
+            }, self.timeout);
+            return this;
+        }
+    };
+    createWebSocket(url);
+</script>

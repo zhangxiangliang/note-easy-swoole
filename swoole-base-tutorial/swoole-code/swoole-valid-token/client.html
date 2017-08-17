@@ -1,0 +1,12 @@
+<script>
+var ws = new WebSocket("ws://127.0.0.1:9501?uid=1024&token=xdd");
+ws.onopen = function(event) {
+    ws.send('This is websocket client.');
+};
+ws.onmessage = function(event) {
+    console.log(event.data);
+};
+ws.onclose = function(event) {
+    console.log('Client has closed.\n');
+};
+</script>

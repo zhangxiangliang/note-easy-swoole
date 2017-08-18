@@ -1,21 +1,38 @@
 <?php
 
+use Exception;
+
 class CommentServer
 {
-    private $serv;
+
     private $key = 'taroball.net';
-    private $fd;
     private $users = [];
+
+    private $serv;
+    private $tcpServ;
+    private $ip = '192.168.1.125';
+    private $port = 9501;
+    private $tcpPort = 9502;
     private $config = [
         'worker_num' => 1,
         'heartbeat_check_interval' => 60,
-        'heartbeat_idle_time' => 125
+        'heartbeat_idle_time' => 125,
+    ];
+    private $tcpConfig = [
+        'open_eof_check' => true,
+        'package_eof' => "\r\n",
+        'open_eof_split' => true,
     ];
 
     public function __construct()
     {
-        $this->serv = new Swoole\WebSocket\Server('192.168.1.125', 9501);
+        $this->serv = new Swoole\WebSocket\Server($this->ip, $this->port);
+        $this->tcpServ = $this->serv->listen($this->ip, $this->tcpPort);
+
         $this->serv->set($this->config);
+        $this->tcpServ->set($this->tcpConfig);
+
+        $this->tcpConfig->on('Receive', [$this, 'onReceive']);
         $this->load(['Open', 'Close', 'Message']);
     }
 
@@ -43,7 +60,7 @@ class CommentServer
         }
 
         $method = $data['event'];
-        return $this->callMethodByFrameAndData($method, $frame, $data);
+        return $this->callMethodByFrameAndData($method, $frame->fd, $data);
     }
 
     public function onClose($serv, $fd)
@@ -51,13 +68,29 @@ class CommentServer
         echo "client {$fd} closed.\n";
     }
 
-    public function callMethodByFrameAndData($method, $frame, $data)
+    public function onReceive($serv, $fd, $fromId, $data)
+    {
+        try {
+            $data = json_decode($data, true);
+            if(!isset($data['event'])) throw new Exception("params error, needs event params.");
+
+            $method = $data['event'];
+            if(!method_exists($this, $method)) throw new Exception("params error, not support method.");
+
+            $this->callMethodByFrameAndData($method, $fd, $data);
+            return true;
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    public function callMethodByFrameAndData($method, $fd, $data)
     {
         if(!method_exists($this, $method)) {
-            $this->close($frame->fd, 'event is not exits.');
+            $this->close($fd, 'event is not exits.');
             return false;
         }
-        $this->$method($frame->fd, $data);
+        $this->$method($fd, $data);
         return true;
     }
 
